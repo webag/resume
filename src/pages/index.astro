@@ -1,16 +1,127 @@
 ---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import photo from '../assets/photo.jpg';
+import Base from '../layouts/Base.astro';
+import CaseCard from '../components/CaseCard.astro';
+import Split from '../components/Split.astro';
+import { profile, caseTypes } from '../data/profile';
+
+const cases = (await getCollection('cases', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const usedTypes = [...new Set(cases.map((c) => c.data.type))];
+const [nameLine1, nameLine2] = profile.name.split(" ");
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base>
+  <section class="hero wrap" data-intro>
+    <div class="hero-text">
+      <p class="eyebrow" data-intro-item>{profile.role} · {profile.location}</p>
+      <h1 class="hero-title" aria-label={profile.name}>
+        <Split as="span" text={nameLine1} class="hero-line" />
+        <Split as="span" text={nameLine2} class="hero-line hero-line--outline" />
+      </h1>
+      <p class="lead" data-intro-item>{profile.about}</p>
+      <div class="hero-stats" data-intro-item>
+        {profile.stats.map((s) => <div><strong data-count>{s.value}</strong><span>{s.label}</span></div>)}
+        <div><strong data-count>{cases.length}</strong><span>кейсов в портфолио</span></div>
+      </div>
+      <div class="hero-actions" data-intro-item>
+        <a class="button" href="#cases">Смотреть кейсы</a>
+        <a class="button ghost" href="#contacts">Связаться</a>
+      </div>
+    </div>
+    <div class="hero-photo" data-intro-media>
+      <Image src={photo} alt={profile.name} widths={[320, 640, 960]} sizes="(max-width: 900px) 180px, 28vw" loading="eager" />
+    </div>
+    <span class="scroll-hint" aria-hidden="true" data-intro-item>scroll</span>
+  </section>
+
+  <section id="cases" class="section wrap">
+    <div class="section-head">
+      <Split text="Кейсы" />
+      <div class="filters" role="toolbar" aria-label="Фильтр по типу" data-reveal>
+        <button class="filter is-active" data-filter="all">Все</button>
+        {usedTypes.map((t) => <button class="filter" data-filter={t}>{caseTypes[t]}</button>)}
+      </div>
+    </div>
+    <div class="grid">
+      {cases.map((entry) => <CaseCard entry={entry} />)}
+    </div>
+  </section>
+
+  <section id="ai" class="section wrap">
+    <Split text="AI в работе" />
+    <p class="lead" data-reveal>{profile.ai.intro}</p>
+    <div class="ai-grid">
+      {profile.ai.items.map((item, i) => (
+        <article class="panel ai-card" data-reveal>
+          <span class="ai-num">{String(i + 1).padStart(2, '0')}</span>
+          <h3>{item.title}</h3>
+          <p>{item.text}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section id="tools" class="section wrap">
+    <Split text="Инструменты и пет-проекты" />
+    <div class="tools-grid">
+      {profile.tools.map((t) => (
+        <article class="panel tool-card" data-reveal>
+          <p class="eyebrow">{t.kind}</p>
+          <h3>{t.title}</h3>
+          <p>{t.text}</p>
+          <ul class="tags">{t.tags.map((tag) => <li>{tag}</li>)}</ul>
+          {t.url && <a class="tool-link" href={t.url} target="_blank" rel="noopener">Код на GitHub ↗</a>}
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section id="about" class="section wrap two-col">
+    <div>
+      <Split text="Опыт" />
+      {profile.experience.map((job) => (
+        <article class="job" data-reveal>
+          <h3><a href={job.url} target="_blank" rel="noopener">{job.company}</a></h3>
+          {(job.position || job.period) && <p class="muted">{[job.position, job.period].filter(Boolean).join(' · ')}</p>}
+          <p>{job.text}</p>
+          {job.points.length > 0 && (
+            <ul class="points">
+              {job.points.map((p) => <li>{p}</li>)}
+            </ul>
+          )}
+        </article>
+      ))}
+      <Split text="Обучение" class="mt" />
+      {profile.education.map((ed) => (
+        <article class="job" data-reveal>
+          <h3>{ed.name}</h3>
+          <p class="muted">{ed.program} · {ed.period}</p>
+          {ed.text && <p>{ed.text}</p>}
+        </article>
+      ))}
+    </div>
+    <div>
+      <Split text="Навыки" />
+      <ul class="tags tags-lg" data-reveal>
+        {profile.skills.map((s) => <li>{s}</li>)}
+      </ul>
+      <Split text="О себе" class="mt" />
+      <ul class="points" data-reveal>
+        {profile.qualities.map((q) => <li>{q}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section id="contacts" class="section wrap contacts-section">
+    <Split text="Давайте поработаем вместе" class="contacts-title" />
+    <ul class="contacts">
+      {profile.contacts.map((c) => (
+        <li data-reveal><span class="muted">{c.label}</span><a href={c.href}>{c.text}</a></li>
+      ))}
+    </ul>
+  </section>
+</Base>

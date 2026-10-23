@@ -1,0 +1,28 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { caseTypes } from '../data/profile';
+
+interface Props {
+  entry: CollectionEntry<'cases'>;
+}
+
+const { entry } = Astro.props;
+const { title, summary, type, cover, tags, year } = entry.data;
+---
+
+<a class="card" href={`${import.meta.env.BASE_URL}cases/${entry.id}/`} data-type={type} data-reveal data-cursor="Смотреть">
+  <div class="card-media" data-parallax transition:name={`cover-${entry.id}`}>
+    <Image src={cover} alt={title} widths={[600, 900, 1300]} sizes="(max-width: 700px) 100vw, (max-width: 1600px) 33vw, 25vw" loading="lazy" />
+  </div>
+  <div class="card-body">
+    <span class="eyebrow">{caseTypes[type]}{year && ` · ${year}`}</span>
+    <h3>{title}</h3>
+    <p>{summary}</p>
+    {tags.length > 0 && (
+      <ul class="tags">
+        {tags.slice(0, 3).map((t) => <li>{t}</li>)}
+      </ul>
+    )}
+  </div>
+</a>

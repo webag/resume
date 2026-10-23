@@ -1,0 +1,21 @@
+---
+// Заголовок, разбитый на слова под маской, — для анимации появления (см. scripts/motion.ts).
+interface Props {
+  text: string;
+  as?: 'h1' | 'h2' | 'h3' | 'p' | 'span';
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { text, as: Tag = 'h2', class: className, ...rest } = Astro.props;
+const words = text.split(/\s+/).filter(Boolean);
+---
+
+<Tag class:list={['split', className]} aria-label={text} {...rest}>
+  {words.map((w, i) => (
+    <>
+      <span class="w" aria-hidden="true"><span>{w}</span></span>
+      {i < words.length - 1 && ' '}
+    </>
+  ))}
+</Tag>

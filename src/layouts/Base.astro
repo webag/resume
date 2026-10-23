@@ -1,0 +1,68 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+import { profile } from '../data/profile';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = profile.about } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const fullTitle = title ? `${title} — ${profile.name}` : `${profile.name} — ${profile.role}`;
+const phone = profile.contacts.find((c) => c.label === 'Телефон');
+const telegram = profile.contacts.find((c) => c.label === 'Telegram');
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{fullTitle}</title>
+    <ClientRouter fallback="swap" />
+  </head>
+  <body>
+    <div class="cursor" aria-hidden="true"><span class="cursor-label"></span></div>
+    <header class="nav" transition:persist>
+      <a class="brand" href={base}>{profile.name}</a>
+      <nav>
+        <a href={`${base}#cases`}>Кейсы</a>
+        <a href={`${base}#ai`}>AI</a>
+        <a href={`${base}#tools`}>Инструменты</a>
+        <a href={`${base}#about`}>Обо мне</a>
+        <a href={`${base}#contacts`}>Контакты</a>
+      </nav>
+      <div class="nav-contacts">
+        {phone && (
+          <a class="nav-phone" href={phone.href} aria-label={`Позвонить: ${phone.text}`}>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>
+            <span>{phone.text}</span>
+          </a>
+        )}
+        {telegram && (
+          <a class="nav-tg" href={telegram.href} target="_blank" rel="noopener" aria-label={`Telegram ${telegram.text}`}>
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M21.9 4.3 18.7 19.4c-.24 1.06-.87 1.32-1.76.82l-4.86-3.58-2.35 2.26c-.26.26-.48.48-.98.48l.35-4.96 9.02-8.15c.39-.35-.09-.54-.6-.2L6.37 13.1l-4.8-1.5c-1.04-.33-1.06-1.04.22-1.54L20.55 2.8c.87-.32 1.63.2 1.35 1.5z"/></svg>
+          </a>
+        )}
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="footer wrap">
+      <span>© {new Date().getFullYear()} {profile.name}</span>
+    </footer>
+  </body>
+</html>
+
+<script>
+  import { initCursor } from '../scripts/cursor';
+  import '../scripts/motion';
+
+  initCursor();
+</script>
