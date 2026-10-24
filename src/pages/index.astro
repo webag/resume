@@ -12,10 +12,41 @@ const cases = (await getCollection('cases', ({ data }) => !data.draft)).sort(
   (a, b) => a.data.order - b.data.order,
 );
 const usedTypes = [...new Set(cases.map((c) => c.data.type))];
-const [nameLine1, nameLine2] = profile.name.split(" ");
+const [nameLine1, nameLine2] = profile.name.split(' ');
+
+function plural(n: number, one: string, few: string, many: string) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+  return many;
+}
+
+const casesWord = plural(cases.length, 'кейс', 'кейса', 'кейсов');
+const base = import.meta.env.BASE_URL;
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const ogImage = new URL(`${base}og.png`, origin).href;
+
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  jobTitle: profile.role,
+  description: profile.about,
+  url: Astro.url.href,
+  image: ogImage,
+  sameAs: profile.contacts.filter((c) => c.href.startsWith('http')).map((c) => c.href),
+  knowsAbout: profile.skills,
+  worksFor: {
+    '@type': 'Organization',
+    name: profile.experience[0].company,
+    url: profile.experience[0].url,
+  },
+  address: { '@type': 'PostalAddress', addressLocality: 'Казань', addressCountry: 'RU' },
+};
 ---
 
-<Base>
+<Base jsonLd={personJsonLd}>
   <section class="hero wrap" data-intro>
     <div class="hero-text">
       <p class="eyebrow" data-intro-item>{profile.role} · {profile.location}</p>
@@ -26,7 +57,7 @@ const [nameLine1, nameLine2] = profile.name.split(" ");
       <p class="lead" data-intro-item>{profile.about}</p>
       <div class="hero-stats" data-intro-item>
         {profile.stats.map((s) => <div><strong data-count>{s.value}</strong><span>{s.label}</span></div>)}
-        <div><strong data-count>{cases.length}</strong><span>кейсов в портфолио</span></div>
+        <!-- <div><strong data-count>{cases.length}</strong><span>{casesWord} в портфолио</span></div> -->
       </div>
       <div class="hero-actions" data-intro-item>
         <a class="button" href="#cases">Смотреть кейсы</a>
@@ -37,48 +68,6 @@ const [nameLine1, nameLine2] = profile.name.split(" ");
       <Image src={photo} alt={profile.name} widths={[320, 640, 960]} sizes="(max-width: 900px) 180px, 28vw" loading="eager" />
     </div>
     <span class="scroll-hint" aria-hidden="true" data-intro-item>scroll</span>
-  </section>
-
-  <section id="cases" class="section wrap">
-    <div class="section-head">
-      <Split text="Кейсы" />
-      <div class="filters" role="toolbar" aria-label="Фильтр по типу" data-reveal>
-        <button class="filter is-active" data-filter="all">Все</button>
-        {usedTypes.map((t) => <button class="filter" data-filter={t}>{caseTypes[t]}</button>)}
-      </div>
-    </div>
-    <div class="grid">
-      {cases.map((entry) => <CaseCard entry={entry} />)}
-    </div>
-  </section>
-
-  <section id="ai" class="section wrap">
-    <Split text="AI в работе" />
-    <p class="lead" data-reveal>{profile.ai.intro}</p>
-    <div class="ai-grid">
-      {profile.ai.items.map((item, i) => (
-        <article class="panel ai-card" data-reveal>
-          <span class="ai-num">{String(i + 1).padStart(2, '0')}</span>
-          <h3>{item.title}</h3>
-          <p>{item.text}</p>
-        </article>
-      ))}
-    </div>
-  </section>
-
-  <section id="tools" class="section wrap">
-    <Split text="Инструменты и пет-проекты" />
-    <div class="tools-grid">
-      {profile.tools.map((t) => (
-        <article class="panel tool-card" data-reveal>
-          <p class="eyebrow">{t.kind}</p>
-          <h3>{t.title}</h3>
-          <p>{t.text}</p>
-          <ul class="tags">{t.tags.map((tag) => <li>{tag}</li>)}</ul>
-          {t.url && <a class="tool-link" href={t.url} target="_blank" rel="noopener">Код на GitHub <Icon name="arrow-up-right" /></a>}
-        </article>
-      ))}
-    </div>
   </section>
 
   <section id="about" class="section wrap two-col">
@@ -114,6 +103,48 @@ const [nameLine1, nameLine2] = profile.name.split(" ");
       <ul class="points" data-reveal>
         {profile.qualities.map((q) => <li>{q}</li>)}
       </ul>
+    </div>
+  </section>
+
+  <section id="ai" class="section wrap">
+    <Split text="AI в работе" />
+    <p class="lead" data-reveal>{profile.ai.intro}</p>
+    <div class="ai-grid">
+      {profile.ai.items.map((item, i) => (
+        <article class="panel ai-card" data-reveal>
+          <span class="ai-num">{String(i + 1).padStart(2, '0')}</span>
+          <h3>{item.title}</h3>
+          <p>{item.text}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section id="cases" class="section wrap">
+    <div class="section-head">
+      <Split text="Кейсы" />
+      <div class="filters" role="toolbar" aria-label="Фильтр по типу" data-reveal>
+        <button class="filter is-active" data-filter="all">Все</button>
+        {usedTypes.map((t) => <button class="filter" data-filter={t}>{caseTypes[t]}</button>)}
+      </div>
+    </div>
+    <div class="grid">
+      {cases.map((entry) => <CaseCard entry={entry} />)}
+    </div>
+  </section>
+
+  <section id="tools" class="section wrap">
+    <Split text="Инструменты и пет-проекты" />
+    <div class="tools-grid">
+      {profile.tools.map((t) => (
+        <article class="panel tool-card" data-reveal>
+          <p class="eyebrow">{t.kind}</p>
+          <h3>{t.title}</h3>
+          <p>{t.text}</p>
+          <ul class="tags">{t.tags.map((tag) => <li>{tag}</li>)}</ul>
+          {t.url && <a class="tool-link" href={t.url} target="_blank" rel="noopener">Код на GitHub <Icon name="arrow-up-right" /></a>}
+        </article>
+      ))}
     </div>
   </section>
 

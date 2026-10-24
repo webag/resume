@@ -1,10 +1,10 @@
 ---
 import { getCollection, render } from 'astro:content';
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import Split from '../../components/Split.astro';
 import Icon from '../../components/Icon.astro';
-import { caseTypes } from '../../data/profile';
+import { profile, caseTypes } from '../../data/profile';
 
 export async function getStaticPaths() {
   const cases = (await getCollection('cases', ({ data }) => !data.draft)).sort((a, b) => a.data.order - b.data.order);
@@ -19,9 +19,37 @@ const { title, summary, type, cover, tags, url, source, repo, company, role, yea
 const { Content } = await render(entry);
 const meta = [caseTypes[type], company, role, year].filter(Boolean);
 const base = import.meta.env.BASE_URL;
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const homeUrl = new URL(base, origin).href;
+
+const og = await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', format: 'jpeg', quality: 82 });
+const ogImage = new URL(og.src, origin).href;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: title,
+    description: summary,
+    image: ogImage,
+    url: Astro.url.href,
+    inLanguage: 'ru',
+    creator: { '@type': 'Person', name: profile.name, url: homeUrl },
+    ...(year ? { dateCreated: String(year) } : {}),
+    ...(company ? { sourceOrganization: { '@type': 'Organization', name: company } } : {}),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Главная', item: homeUrl },
+      { '@type': 'ListItem', position: 2, name: title, item: Astro.url.href },
+    ],
+  },
+];
 ---
 
-<Base title={title} description={summary}>
+<Base title={title} description={summary} image={ogImage} imageAlt={title} ogType="article" jsonLd={jsonLd}>
   <article class="case wrap">
     <header class="case-head">
       <p class="eyebrow" data-reveal>{meta.join(' · ')}</p>

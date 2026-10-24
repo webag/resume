@@ -54,13 +54,19 @@ document.addEventListener(
 const words = (el: Element) => el.querySelectorAll('.w > span');
 
 function revealSplit(el: Element, delay = 0) {
+  const targets = words(el);
+  if (!targets.length) return;
+
   // y: 0 обязателен: GSAP читает translateY(115%) из CSS как пиксельный y.
-  return gsap.fromTo(words(el), { y: 0, yPercent: 115 }, { y: 0, yPercent: 0, duration: 1.1, ease: EASE, stagger: 0.05, delay });
+  return gsap.fromTo(targets, { y: 0, yPercent: 115 }, { y: 0, yPercent: 0, duration: 1.1, ease: EASE, stagger: 0.05, delay });
 }
 
 function revealBlocks(els: Element[], stagger = 0.09) {
+  const targets = els.filter((el): el is Element => Boolean(el));
+  if (!targets.length) return;
+
   return gsap.fromTo(
-    els,
+    targets,
     { autoAlpha: 0, y: 48 },
     { autoAlpha: 1, y: 0, duration: 1.15, ease: EASE, stagger, clearProps: 'transform' },
   );
@@ -85,12 +91,17 @@ function initReveals() {
     const intro = document.querySelector<HTMLElement>('[data-intro]');
     if (intro && !intro.dataset.shown) {
       const tl = gsap.timeline({ delay: 0.15 });
-      intro.querySelectorAll('.split').forEach((el, i) => tl.add(revealSplit(el), i * 0.12));
-      tl.add(revealBlocks([...intro.querySelectorAll('[data-intro-item]')], 0.1), 0.35);
+      intro.querySelectorAll('.split').forEach((el, i) => {
+        const tween = revealSplit(el);
+        if (tween) tl.add(tween, i * 0.12);
+      });
+      const introItems = revealBlocks([...intro.querySelectorAll('[data-intro-item]')], 0.1);
+      if (introItems) tl.add(introItems, 0.35);
       const media = intro.querySelector('[data-intro-media]');
       if (media) {
         tl.fromTo(media, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.4, ease: 'expo.inOut' }, 0.2);
-        tl.fromTo(media.querySelector('img'), { scale: 1.25 }, { scale: 1, duration: 1.8, ease: EASE }, 0.2);
+        const image = media.querySelector('img');
+        if (image) tl.fromTo(image, { scale: 1.25 }, { scale: 1, duration: 1.8, ease: EASE }, 0.2);
       }
       intro.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => tl.add(() => countUp(el), 0.6));
     }

@@ -1,16 +1,34 @@
 ---
 import { ClientRouter } from 'astro:transitions';
-import '../styles/global.css';
+import '../styles/global.scss';
 import { profile } from '../data/profile';
 
 interface Props {
   title?: string;
   description?: string;
+  image?: string;
+  imageAlt?: string;
+  ogType?: 'website' | 'article';
+  noindex?: boolean;
+  jsonLd?: object | object[];
 }
 
-const { title, description = profile.about } = Astro.props;
+const {
+  title,
+  description = profile.about,
+  image,
+  imageAlt = `${profile.name} — ${profile.role}`,
+  ogType = 'website',
+  noindex = false,
+  jsonLd,
+} = Astro.props;
+
 const base = import.meta.env.BASE_URL;
 const fullTitle = title ? `${title} — ${profile.name}` : `${profile.name} — ${profile.role}`;
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const canonical = Astro.url.href;
+const ogImage = image ?? new URL(`${base}og.png`, origin).href;
+const pageMeta = JSON.stringify({ title: fullTitle, description, url: canonical, image: ogImage, imageAlt, ogType });
 const phone = profile.contacts.find((c) => c.label === 'Телефон');
 const telegram = profile.contacts.find((c) => c.label === 'Telegram');
 ---
@@ -20,9 +38,35 @@ const telegram = profile.contacts.find((c) => c.label === 'Telegram');
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href={`${base}favicon.ico`} sizes="32x32 48x48" />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="apple-touch-icon" sizes="180x180" href={`${base}apple-touch-icon.png`} />
     <meta name="description" content={description} />
+    <meta name="author" content={profile.name} />
+    <meta name="theme-color" content="#08090c" />
     <meta name="generator" content={Astro.generator} />
+    {noindex ? (
+      <meta name="robots" content="noindex, follow" />
+    ) : (
+      <Fragment>
+        <link rel="canonical" href={canonical} />
+        <meta property="og:type" content={ogType} />
+        <meta property="og:locale" content="ru_RU" />
+        <meta property="og:site_name" content={profile.name} />
+        <meta property="og:title" content={fullTitle} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={canonical} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={imageAlt} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={fullTitle} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={ogImage} />
+      </Fragment>
+    )}
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
     <title>{fullTitle}</title>
     <ClientRouter fallback="swap" />
   </head>
@@ -30,13 +74,17 @@ const telegram = profile.contacts.find((c) => c.label === 'Telegram');
     <div class="cursor" aria-hidden="true"><span class="cursor-label"></span></div>
     <header class="nav" transition:persist>
       <a class="brand" href={base}>{profile.name}</a>
-      <nav>
-        <a href={`${base}#cases`}>Кейсы</a>
-        <a href={`${base}#ai`}>AI</a>
-        <a href={`${base}#tools`}>Инструменты</a>
-        <a href={`${base}#about`}>Обо мне</a>
-        <a href={`${base}#contacts`}>Контакты</a>
-      </nav>
+      <div class="nav-links">
+        <nav>
+          <a href={`${base}#about`}>Обо мне</a>
+          <a href={`${base}#ai`}>AI</a>
+          <a href={`${base}#cases`}>Кейсы</a>
+          <a href={`${base}#tools`}>Инструменты</a>
+          <a href={`${base}#contacts`}>Контакты</a>
+        </nav>
+        <span class="nav-fade nav-fade--left" aria-hidden="true"></span>
+        <span class="nav-fade nav-fade--right" aria-hidden="true"></span>
+      </div>
       <div class="nav-contacts">
         {phone && (
           <a class="nav-phone" href={phone.href} aria-label={`Позвонить: ${phone.text}`}>
@@ -51,7 +99,7 @@ const telegram = profile.contacts.find((c) => c.label === 'Telegram');
         )}
       </div>
     </header>
-    <main>
+    <main data-page-meta={pageMeta}>
       <slot />
     </main>
     <footer class="footer wrap">
@@ -66,4 +114,99 @@ const telegram = profile.contacts.find((c) => c.label === 'Telegram');
   import '../scripts/page-transition';
 
   initCursor();
+
+  // Мобильное меню: градиентные края включаются только там, где ссылки реально обрезаны.
+  function initNavFades() {
+    const wrap = document.querySelector<HTMLElement>('.nav-links');
+    const scroller = wrap?.querySelector<HTMLElement>('nav');
+    if (!wrap || !scroller) return;
+
+    const update = () => {
+      const max = scroller.scrollWidth - scroller.clientWidth;
+      wrap.classList.toggle('can-left', scroller.scrollLeft > 1);
+      wrap.classList.toggle('can-right', max > 1 && scroller.scrollLeft < max - 1);
+    };
+
+    scroller.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    if (document.fonts) document.fonts.ready.then(update).catch(() => {});
+    update();
+    requestAnimationFrame(update);
+  }
+
+  initNavFades();
+
+  // :active на touch срабатывает не везде, поэтому на время касания ставим класс.
+  function initTouchFeedback() {
+    let pressed: HTMLElement | null = null;
+    let startX = 0;
+    let startY = 0;
+
+    const clear = () => {
+      pressed?.classList.remove('is-pressed');
+      pressed = null;
+    };
+
+    document.addEventListener(
+      'pointerdown',
+      (event) => {
+        if (event.pointerType !== 'touch') return;
+        const el = (event.target as Element | null)?.closest<HTMLElement>('a, button, [role="button"]');
+        if (!el) return;
+        clear();
+        pressed = el;
+        startX = event.clientX;
+        startY = event.clientY;
+        el.classList.add('is-pressed');
+      },
+      { passive: true },
+    );
+
+    document.addEventListener(
+      'pointermove',
+      (event) => {
+        if (!pressed || event.pointerType !== 'touch') return;
+        if (Math.hypot(event.clientX - startX, event.clientY - startY) > 10) clear();
+      },
+      { passive: true },
+    );
+
+    document.addEventListener('pointerup', clear, { passive: true });
+    document.addEventListener('pointercancel', clear, { passive: true });
+    window.addEventListener('blur', clear);
+  }
+
+  initTouchFeedback();
+
+  // ClientRouter меняет только <title>, остальные meta остаются от первой страницы.
+  // Синхронизируем canonical/OG/Twitter с данными той страницы, куда перешли.
+  function syncPageMeta() {
+    const raw = document.querySelector<HTMLElement>('[data-page-meta]')?.dataset.pageMeta;
+    if (!raw) return;
+
+    let meta: { title: string; description: string; url: string; image: string; imageAlt: string; ogType: string };
+    try {
+      meta = JSON.parse(raw);
+    } catch {
+      return;
+    }
+
+    const setContent = (selector: string, value: string) => {
+      document.querySelector(selector)?.setAttribute('content', value);
+    };
+
+    document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', meta.url);
+    setContent('meta[name="description"]', meta.description);
+    setContent('meta[property="og:type"]', meta.ogType);
+    setContent('meta[property="og:title"]', meta.title);
+    setContent('meta[property="og:description"]', meta.description);
+    setContent('meta[property="og:url"]', meta.url);
+    setContent('meta[property="og:image"]', meta.image);
+    setContent('meta[property="og:image:alt"]', meta.imageAlt);
+    setContent('meta[name="twitter:title"]', meta.title);
+    setContent('meta[name="twitter:description"]', meta.description);
+    setContent('meta[name="twitter:image"]', meta.image);
+  }
+
+  document.addEventListener('astro:after-swap', syncPageMeta);
 </script>

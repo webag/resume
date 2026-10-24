@@ -10,9 +10,23 @@
 | `npm run dev`     | Dev-сервер на `localhost:4321`                |
 | `npm run build`   | Сборка в `./dist/`                            |
 | `npm run preview` | Просмотр собранного сайта                     |
+| `npm run preview:404` | Локальная проверка 404 на собранном сайте |
 | `npm run check`   | Проверка типов и схемы кейсов                 |
+| `npm run og`      | Пересобрать картинку для соцсетей `public/og.png` |
+| `npm run favicon` | Пересобрать `favicon.svg`, `favicon.ico` (32/48) и `apple-touch-icon.png` |
 
 Нужен Node.js 22.23.4 или новее.
+
+## Проверка 404
+
+`astro dev` уже показывает нашу 404 для адресов со слешем (`/no-such-page/`, `/12/`). Для адреса без слеша (`/12`) Astro выводит свою подсказку «перейти на `/12/`» — это его штатное поведение. `astro preview` отдаёт служебную пустую 404, поэтому собранный сайт надёжнее проверять так:
+
+```bash
+npm run build
+npm run preview:404
+```
+
+Откройте `http://127.0.0.1:4322/no-such-page/`. После сборки с `BASE_PATH=/resume/` (как на GitHub Pages) адрес будет `http://127.0.0.1:4322/resume/no-such-page/`. Порт можно поменять: `PORT=4323 npm run preview:404`.
 
 ## Как добавить кейс
 

@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+
+const base = import.meta.env.BASE_URL;
+---
+
+<Base
+  title="Страница не найдена"
+  description="Такой страницы нет: возможно, ссылка устарела или в адресе опечатка."
+  noindex
+>
+  <section class="notfound wrap">
+    <p class="eyebrow">Ошибка 404</p>
+    <h1>Страница не найдена</h1>
+    <p class="lead">Возможно, ссылка устарела или в адресе опечатка. Все кейсы, опыт и контакты — на главной.</p>
+    <a class="button" href={base}>На главную</a>
+  </section>
+</Base>
