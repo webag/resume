@@ -7,6 +7,7 @@ url: "https://skazka34.ru"
 cover: ../../assets/cases/skazka34.webp
 tags: ["1С-Битрикс", "reCAPTCHA", "Видеофон"]
 order: 320
+draft: true
 ---
 
 ## О проекте

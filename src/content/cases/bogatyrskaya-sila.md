@@ -8,6 +8,7 @@ source: "https://penbrain.ru/portfolio/digital/landing-page-bogatyrskaya-sila/"
 cover: ../../assets/cases/bogatyrskaya-sila.webp
 tags: ["Лендинг", "Калькулятор", "Анимация"]
 order: 260
+draft: true
 ---
 
 ## Задача

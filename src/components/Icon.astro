@@ -1,0 +1,29 @@
+---
+// Линейные SVG-иконки вместо стрелок из шрифта. Размер — 1em, цвет — currentColor.
+interface Props {
+  name: 'arrow-up-right' | 'arrow-right' | 'close';
+  class?: string;
+}
+
+const { name, class: className } = Astro.props;
+const paths: Record<Props['name'], string> = {
+  'arrow-up-right': 'M7 17 17 7M8 7h9v9',
+  'arrow-right': 'M4 12h16M14 6l6 6-6 6',
+  close: 'M6 6l12 12M18 6 6 18',
+};
+---
+
+<svg
+  class:list={['icon', className]}
+  viewBox="0 0 24 24"
+  width="1em"
+  height="1em"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path d={paths[name]} />
+</svg>

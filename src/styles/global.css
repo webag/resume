@@ -187,6 +187,32 @@ img { max-width: 100%; height: auto; display: block; }
 .cursor.is-card .cursor-label { opacity: 1; transform: scale(1); }
 @media (pointer: coarse) { .cursor { display: none; } }
 
+/* ---------- Иконки и кнопка закрытия кейса ---------- */
+
+.icon { flex-shrink: 0; vertical-align: -0.125em; }
+
+.close-case {
+  position: fixed;
+  z-index: 45;
+  left: 50%;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  translate: -50% 0;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 26px;
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.35s;
+  animation: close-in 0.7s var(--ease) 0.35s both;
+}
+.close-case:hover { background: color-mix(in srgb, var(--accent) 82%, var(--text)); }
+.close-case .icon { stroke-width: 2.2; }
+@keyframes close-in { from { opacity: 0; scale: 0.5; } }
+
 /* ---------- Типографика и элементы ---------- */
 
 .eyebrow {
@@ -410,7 +436,7 @@ img { max-width: 100%; height: auto; display: block; }
 .tool-card h3 { margin: 0; font-size: clamp(24px, calc(1.7 * var(--vw)), 38px); letter-spacing: -0.03em; }
 .tool-card p { margin: 0; color: var(--muted); }
 .tool-card .tags { margin-top: auto; padding-top: 10px; }
-.tool-link { color: var(--accent); font-weight: 700; text-decoration: none; }
+.tool-link { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-weight: 700; text-decoration: none; }
 
 /* ---------- Опыт ---------- */
 
@@ -451,16 +477,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* ---------- Страница кейса ---------- */
 
-.case { padding-top: clamp(110px, 12vh, 200px); padding-bottom: clamp(60px, calc(6 * var(--vw)), 140px); }
-.back {
-  display: inline-flex;
-  margin-bottom: clamp(24px, calc(3 * var(--vw)), 64px);
-  color: var(--muted);
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s, transform 0.5s var(--ease);
-}
-.back:hover { color: var(--text); transform: translateX(-4px); }
+.case { padding-top: clamp(110px, 12vh, 200px); padding-bottom: clamp(110px, calc(8 * var(--vw)), 160px); }
 .case-head {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
@@ -520,6 +537,8 @@ img { max-width: 100%; height: auto; display: block; }
   transition: color 0.4s, transform 0.6s var(--ease);
 }
 .next-case:hover .next-title { color: var(--accent); transform: translateX(12px); }
+.next-icon { margin-left: 0.15em; vertical-align: -0.08em; stroke-width: 2.4; transition: transform 0.6s var(--ease); }
+.next-case:hover .next-icon { transform: translateX(0.12em); }
 
 /* ---------- Начальные состояния анимаций ---------- */
 
@@ -540,6 +559,34 @@ img { max-width: 100%; height: auto; display: block; }
 ::view-transition-new(root) { animation: vt-in 0.8s var(--ease) 0.2s both; }
 ::view-transition-old(site-nav), ::view-transition-new(site-nav),
 ::view-transition-old(cursor), ::view-transition-new(cursor) { animation: none; }
+/* Переход «круг из точки клика» (scripts/page-transition.ts) */
+.vt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--accent-ink);
+  clip-path: circle(0 at 50% 50%);
+  pointer-events: all;
+}
+.vt-overlay__inner { display: grid; gap: 16px; justify-items: center; text-align: center; padding-inline: var(--gutter); }
+.vt-overlay__eyebrow { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; }
+.vt-overlay__title {
+  font-size: clamp(44px, calc(7 * var(--vw)), 150px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  max-width: 14ch;
+}
+html[data-vt="circle"]::view-transition-old(root) { animation: none; }
+html[data-vt="circle"]::view-transition-new(root) { animation: vt-open 0.85s var(--ease-io) both; }
+@keyframes vt-open {
+  from { clip-path: circle(0% at 50% 50%); }
+  to { clip-path: circle(75% at 50% 50%); }
+}
+
 /* Возврат на главную — быстрее */
 html[data-vt="back"]::view-transition-group(*) { animation-duration: 0.5s; }
 html[data-vt="back"]::view-transition-old(root) { animation-duration: 0.22s; }
@@ -548,6 +595,7 @@ html[data-vt="back"]::view-transition-new(root) { animation-duration: 0.45s; ani
 @keyframes vt-in { from { opacity: 0; transform: translateY(32px); } }
 
 @media (prefers-reduced-motion: reduce) {
+  .close-case { animation: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .scroll-hint::after { animation: none; }
 }
@@ -584,4 +632,6 @@ html[data-vt="back"]::view-transition-new(root) { animation-duration: 0.45s; ani
   .hero { padding-top: 140px; }
   .scroll-hint { display: none; }
   .contacts li { grid-template-columns: 1fr; gap: 2px; }
+  .close-case { bottom: calc(18px + env(safe-area-inset-bottom)); width: 56px; height: 56px; }
+  .case { padding-top: 150px; }
 }

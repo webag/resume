@@ -11,8 +11,8 @@ const { entry } = Astro.props;
 const { title, summary, type, cover, tags, year } = entry.data;
 ---
 
-<a class="card" href={`${import.meta.env.BASE_URL}cases/${entry.id}/`} data-type={type} data-reveal data-cursor="Смотреть">
-  <div class="card-media" data-parallax transition:name={`cover-${entry.id}`}>
+<a class="card" href={`${import.meta.env.BASE_URL}cases/${entry.id}/`} data-type={type} data-reveal data-cursor="Смотреть" data-circle={title} data-astro-prefetch>
+  <div class="card-media" data-parallax>
     <Image src={cover} alt={title} widths={[600, 900, 1300]} sizes="(max-width: 700px) 100vw, (max-width: 1600px) 33vw, 25vw" loading="lazy" />
   </div>
   <div class="card-body">
