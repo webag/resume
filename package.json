@@ -11,7 +11,6 @@
     "preview": "astro preview",
     "preview:404": "node scripts/preview-404.mjs",
     "check": "astro check",
-    "og": "node scripts/og.mjs",
     "favicon": "node scripts/favicon.mjs",
     "astro": "astro"
   },
@@ -22,8 +21,11 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "@fontsource/manrope": "^5.3.0",
     "@types/node": "^22.20.5",
     "sass": "^1.106.1",
+    "satori": "^0.63.2",
+    "sharp": "^0.35.5",
     "typescript": "^6.0.3"
   }
 }

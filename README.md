@@ -12,7 +12,6 @@
 | `npm run preview` | Просмотр собранного сайта                     |
 | `npm run preview:404` | Локальная проверка 404 на собранном сайте |
 | `npm run check`   | Проверка типов и схемы кейсов                 |
-| `npm run og`      | Пересобрать картинку для соцсетей `public/og.png` |
 | `npm run favicon` | Пересобрать `favicon.svg`, `favicon.ico` (32/48) и `apple-touch-icon.png` |
 
 Нужен Node.js 22.23.4 или новее.
