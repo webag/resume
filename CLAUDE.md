@@ -27,7 +27,8 @@ Never run `git commit`, `git push`, `git tag`, `git merge`, `gh pr create`, `gh 
 
 Save tokens without lowering quality: pick the cheapest model that fits the task. The user does not run git by hand, so git work is done by Claude.
 
-- Git (status, diff, log, staging, summarizing changes, drafting a commit message) → an Agent with `model: "haiku"`, unless the main session is already on Haiku (then run it inline: a subagent adds overhead with no saving). Commit/push still need approval as above.
+- Short git operations (a few commands: status, a small diff, staging, commit, push) → inline. A subagent costs ~40k tokens of startup overhead even on Haiku, more than these commands. Commit/push still need approval as above.
+- Digesting a large git history or big diffs (summarizing many commits, reviewing what another tool changed) → an Agent with `model: "haiku"`, returning a short summary, unless the main session is already on Haiku.
 - Broad repo searches and digesting long output (build logs, many files) → Explore/agent with `model: "haiku"`, returning a short summary.
 - One-line edits (`profile.ts` text, a CSS value) → inline, no agent.
 - Astro components, SCSS, motion scripts, cover generation, case texts in Russian → main session (Sonnet or stronger).
