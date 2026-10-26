@@ -9,6 +9,7 @@ source: "https://penbrain.ru/portfolio/digital/archione-site/"
 cover: ../../assets/cases/archione.webp
 tags: ["1С-Битрикс", "Битрикс24", "Calltouch", "GSAP"]
 order: 10
+draft: true
 ---
 
 ## Задача

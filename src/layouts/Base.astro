@@ -45,9 +45,9 @@ const telegram = profile.contacts.find((c) => c.label === 'Telegram');
     <meta name="author" content={profile.name} />
     <meta name="theme-color" content="#08090c" />
     <meta name="generator" content={Astro.generator} />
-    {noindex ? (
-      <meta name="robots" content="noindex, follow" />
-    ) : (
+    {/* Весь сайт закрыт от индексации; noindex-страницы (404) ещё и без canonical/OG */}
+    <meta name="robots" content="noindex, nofollow" />
+    {noindex ? null : (
       <Fragment>
         <link rel="canonical" href={canonical} />
         <meta property="og:type" content={ogType} />

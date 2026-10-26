@@ -7,6 +7,7 @@ url: "https://lp.archishow.ru"
 cover: ../../assets/cases/archishow-lp.webp
 tags: ["1С-Битрикс", "Bitrix24 REST", "Эквайринг Сбербанка", "GSAP"]
 order: 420
+draft: true
 ---
 
 ## О проекте

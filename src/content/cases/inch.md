@@ -7,6 +7,7 @@ url: "https://inchbyinch.ru"
 cover: ../../assets/cases/inch.webp
 tags: ["1С-Битрикс", "Three.js", "GSAP", "Битрикс24"]
 order: 490
+draft: true
 ---
 
 ## О проекте
